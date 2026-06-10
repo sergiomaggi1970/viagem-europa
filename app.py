@@ -31,7 +31,8 @@ def add_expense():
     r = httpx.post(f"{SUPABASE_URL}/rest/v1/expenses", headers=HEADERS, json={
         "description": data["description"],
         "amount": data["amount"],
-        "paid_by": data["paid_by"]
+        "paid_by": data["paid_by"],
+        "currency": data.get("currency", "EUR")
     })
     return jsonify(r.json()), 201
 
