@@ -7,40 +7,62 @@
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f5f5f0; min-height: 100vh; padding: 1.5rem 1rem; color: #1a1a1a; }
-  .container { max-width: 560px; margin: 0 auto; }
+  .container { max-width: 580px; margin: 0 auto; }
   h1 { font-size: 22px; font-weight: 600; margin-bottom: 1.5rem; }
   .card { background: #fff; border-radius: 14px; border: 1px solid #e5e5e0; padding: 1.25rem; margin-bottom: 1rem; }
-  .summary-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 1rem; }
-  .metric { background: #f5f5f0; border-radius: 10px; padding: 0.875rem 1rem; }
-  .metric .label { font-size: 12px; color: #888; margin-bottom: 4px; }
-  .metric .value { font-size: 20px; font-weight: 600; }
-  .balance { text-align: center; padding: 1rem; border-radius: 12px; margin-bottom: 1rem; }
-  .balance.ok { background: #e8f5e9; border: 1px solid #a5d6a7; }
-  .balance.ok .txt { color: #2e7d32; font-weight: 600; font-size: 15px; }
-  .balance.owes { background: #fff; border: 1px solid #e5e5e0; }
-  .balance.owes .txt { color: #1a1a1a; font-weight: 600; font-size: 15px; }
-  .balance .sub { font-size: 13px; color: #888; margin-top: 4px; }
-  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+  .card-title { font-size: 13px; font-weight: 600; color: #888; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 14px; }
+  .names-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
   label { font-size: 13px; color: #666; display: block; margin-bottom: 5px; }
   input, select { width: 100%; padding: 9px 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; background: #fafaf8; outline: none; }
   input:focus, select:focus { border-color: #999; }
+
+  .currency-tabs { display: flex; gap: 6px; margin-bottom: 1rem; }
+  .tab { flex: 1; padding: 8px; text-align: center; border-radius: 8px; border: 1px solid #e5e5e0; cursor: pointer; font-size: 14px; font-weight: 500; background: #fff; color: #999; transition: all 0.15s; }
+  .tab.active-eur { background: #e8f0fe; border-color: #a0b4f0; color: #1a56db; }
+  .tab.active-brl { background: #e8f5e9; border-color: #a5d6a7; color: #2e7d32; }
+
+  .section { margin-bottom: 1.25rem; }
+  .section-header { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+  .currency-badge { display: inline-block; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 20px; letter-spacing: 0.03em; }
+  .badge-eur { background: #e8f0fe; color: #1a56db; }
+  .badge-brl { background: #e8f5e9; color: #2e7d32; }
+  .section-label { font-size: 13px; font-weight: 600; color: #555; }
+
+  .summary-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+  .metric { border-radius: 10px; padding: 0.75rem 1rem; }
+  .metric-eur { background: #f0f4ff; }
+  .metric-brl { background: #f0faf0; }
+  .metric .label { font-size: 12px; color: #888; margin-bottom: 3px; }
+  .metric .value { font-size: 18px; font-weight: 600; }
+  .metric-eur .value { color: #1a56db; }
+  .metric-brl .value { color: #2e7d32; }
+
+  .balance { text-align: center; padding: 0.875rem 1rem; border-radius: 10px; margin-top: 8px; }
+  .balance.ok { background: #e8f5e9; border: 1px solid #a5d6a7; }
+  .balance.ok .txt { color: #2e7d32; font-weight: 600; font-size: 14px; }
+  .balance.owes { background: #fff8e1; border: 1px solid #ffe082; }
+  .balance.owes .txt { color: #e65100; font-weight: 600; font-size: 14px; }
+  .balance .sub { font-size: 12px; color: #999; margin-top: 3px; }
+
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
   .btn { width: 100%; padding: 10px; background: #1a1a1a; color: #fff; border: none; border-radius: 8px; font-size: 14px; font-weight: 500; cursor: pointer; margin-top: 4px; }
   .btn:hover { background: #333; }
   .btn:disabled { background: #ccc; cursor: default; }
-  .section-title { font-size: 14px; font-weight: 600; color: #666; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.05em; }
-  .expense-item { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid #f0f0ec; }
+
+  .expense-item { display: flex; align-items: center; gap: 12px; padding: 11px 0; border-bottom: 1px solid #f0f0ec; }
   .expense-item:last-child { border-bottom: none; }
-  .avatar { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600; flex-shrink: 0; }
+  .avatar { width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; flex-shrink: 0; }
   .av-0 { background: #e8f0fe; color: #1a56db; }
   .av-1 { background: #fde8f0; color: #c41754; }
   .exp-info { flex: 1; min-width: 0; }
   .exp-desc { font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .exp-meta { font-size: 12px; color: #999; margin-top: 2px; }
+  .exp-right { display: flex; flex-direction: column; align-items: flex-end; gap: 3px; }
   .exp-amount { font-size: 15px; font-weight: 600; white-space: nowrap; }
-  .del { background: none; border: none; cursor: pointer; color: #ccc; font-size: 18px; padding: 4px; line-height: 1; }
+  .exp-cur-badge { font-size: 10px; font-weight: 700; padding: 1px 6px; border-radius: 10px; }
+  .del { background: none; border: none; cursor: pointer; color: #ccc; font-size: 20px; padding: 4px; line-height: 1; margin-left: 4px; }
   .del:hover { color: #e53935; }
   .empty { text-align: center; padding: 2rem; color: #bbb; font-size: 14px; }
-  .names-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 1rem; }
 </style>
 </head>
 <body>
@@ -48,6 +70,7 @@
   <h1>💸 despesas da viagem</h1>
 
   <div class="card">
+    <div class="card-title">participantes</div>
     <div class="names-row">
       <div>
         <label>seu nome</label>
@@ -60,18 +83,38 @@
     </div>
   </div>
 
-  <div class="summary-grid" id="summary"></div>
-  <div id="balance"></div>
+  <div class="card" id="summary-card">
+    <div class="section">
+      <div class="section-header">
+        <span class="currency-badge badge-eur">EUR €</span>
+        <span class="section-label">resumo em euros</span>
+      </div>
+      <div class="summary-grid" id="summary-eur"></div>
+      <div id="balance-eur"></div>
+    </div>
+    <div class="section" style="margin-bottom:0">
+      <div class="section-header">
+        <span class="currency-badge badge-brl">BRL R$</span>
+        <span class="section-label">resumo em reais</span>
+      </div>
+      <div class="summary-grid" id="summary-brl"></div>
+      <div id="balance-brl"></div>
+    </div>
+  </div>
 
   <div class="card">
-    <div class="section-title" style="margin-bottom:14px">adicionar despesa</div>
-    <div class="form-row">
+    <div class="card-title">adicionar despesa</div>
+    <div class="currency-tabs">
+      <div class="tab active-eur" id="tab-eur" onclick="setTab('eur')">€ Euros</div>
+      <div class="tab" id="tab-brl" onclick="setTab('brl')">R$ Reais</div>
+    </div>
+    <div class="form-grid">
       <div>
         <label>descrição</label>
         <input type="text" id="inp-desc" placeholder="hotel, jantar...">
       </div>
       <div>
-        <label>valor (€)</label>
+        <label id="inp-val-label">valor (€)</label>
         <input type="number" id="inp-val" min="0" step="0.01" placeholder="0,00">
       </div>
     </div>
@@ -82,14 +125,15 @@
     <button class="btn" id="add-btn" onclick="addExpense()">+ adicionar</button>
   </div>
 
-  <div class="card" id="list-card">
-    <div class="section-title">despesas</div>
+  <div class="card">
+    <div class="card-title">todas as despesas</div>
     <div id="list"><div class="empty">nenhuma despesa ainda</div></div>
   </div>
 </div>
 
 <script>
 let expenses = [];
+let currentTab = 'eur';
 
 function names() {
   return [
@@ -98,15 +142,29 @@ function names() {
   ];
 }
 
-function initials(n) { return n.split(' ').map(w=>w[0]).join('').substring(0,2).toUpperCase(); }
+function initials(n) { return n.split(' ').map(w => w[0]).join('').substring(0, 2).toUpperCase(); }
 
 function saveNames() {
-  const [n0, n1] = names();
-  localStorage.setItem('name0', n0);
-  localStorage.setItem('name1', n1);
+  localStorage.setItem('name0', document.getElementById('name0').value.trim());
+  localStorage.setItem('name1', document.getElementById('name1').value.trim());
 }
 
-function fmt(v) { return '€ ' + parseFloat(v).toFixed(2).replace('.', ','); }
+function fmt(v, currency) {
+  const num = parseFloat(v);
+  if (currency === 'EUR') {
+    return '€ ' + num.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  } else {
+    return 'R$ ' + num.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+}
+
+function setTab(tab) {
+  currentTab = tab;
+  document.getElementById('tab-eur').className = 'tab' + (tab === 'eur' ? ' active-eur' : '');
+  document.getElementById('tab-brl').className = 'tab' + (tab === 'brl' ? ' active-brl' : '');
+  document.getElementById('inp-val-label').textContent = tab === 'eur' ? 'valor (€)' : 'valor (R$)';
+  document.getElementById('inp-val').placeholder = tab === 'eur' ? '0,00' : '0,00';
+}
 
 function updateSelect() {
   const sel = document.getElementById('inp-who');
@@ -133,8 +191,13 @@ async function addExpense() {
   const [n0, n1] = names();
   await fetch('/expenses', {
     method: 'POST',
-    headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify({ description: desc, amount: val, paid_by: who === '0' ? n0 : n1 })
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      description: desc,
+      amount: val,
+      paid_by: who === '0' ? n0 : n1,
+      currency: currentTab.toUpperCase()
+    })
   });
   document.getElementById('inp-desc').value = '';
   document.getElementById('inp-val').value = '';
@@ -148,49 +211,65 @@ async function deleteExpense(id) {
   await load();
 }
 
-function render() {
+function renderSummary(currency, gridId, balanceId) {
   const [n0, n1] = names();
-  updateSelect();
+  const cur = currency.toUpperCase();
+  const subset = expenses.filter(e => (e.currency || 'EUR') === cur);
+  const t0 = subset.filter(e => e.paid_by === n0).reduce((s, e) => s + parseFloat(e.amount), 0);
+  const t1 = subset.filter(e => e.paid_by === n1).reduce((s, e) => s + parseFloat(e.amount), 0);
+  const total = t0 + t1;
+  const diff = t0 - t1;
+  const cls = currency === 'eur' ? 'metric-eur' : 'metric-brl';
 
-  const total0 = expenses.filter(e => e.paid_by === n0).reduce((s,e) => s + parseFloat(e.amount), 0);
-  const total1 = expenses.filter(e => e.paid_by === n1).reduce((s,e) => s + parseFloat(e.amount), 0);
-  const total = total0 + total1;
-  const diff = total0 - total1;
-
-  document.getElementById('summary').innerHTML = `
-    <div class="metric"><div class="label">total</div><div class="value">${fmt(total)}</div></div>
-    <div class="metric"><div class="label">${n0}</div><div class="value">${fmt(total0)}</div></div>
-    <div class="metric"><div class="label">${n1}</div><div class="value">${fmt(total1)}</div></div>
+  document.getElementById(gridId).innerHTML = `
+    <div class="metric ${cls}"><div class="label">total</div><div class="value">${fmt(total, cur)}</div></div>
+    <div class="metric ${cls}"><div class="label">${n0}</div><div class="value">${fmt(t0, cur)}</div></div>
+    <div class="metric ${cls}"><div class="label">${n1}</div><div class="value">${fmt(t1, cur)}</div></div>
   `;
 
-  const bc = document.getElementById('balance');
-  if (total === 0) { bc.innerHTML = ''; }
-  else if (Math.abs(diff) < 0.01) {
-    bc.innerHTML = `<div class="balance ok"><div class="txt">✓ tudo equilibrado!</div><div class="sub">vocês gastaram o mesmo</div></div>`;
+  const bc = document.getElementById(balanceId);
+  if (total === 0) {
+    bc.innerHTML = '';
+  } else if (Math.abs(diff) < 0.01) {
+    bc.innerHTML = `<div class="balance ok"><div class="txt">✓ equilibrado!</div><div class="sub">vocês gastaram o mesmo em ${cur === 'EUR' ? 'euros' : 'reais'}</div></div>`;
   } else {
     const devedor = diff > 0 ? n1 : n0;
     const credor = diff > 0 ? n0 : n1;
-    const valor = fmt(Math.abs(diff / 2));
-    bc.innerHTML = `<div class="balance owes"><div class="txt">${devedor} deve pagar ${valor} para ${credor}</div><div class="sub">para ficarem quites</div></div>`;
+    bc.innerHTML = `<div class="balance owes"><div class="txt">${devedor} deve ${fmt(Math.abs(diff / 2), cur)} para ${credor}</div><div class="sub">para ficarem quites em ${cur === 'EUR' ? 'euros' : 'reais'}</div></div>`;
   }
+}
+
+function render() {
+  const [n0, n1] = names();
+  updateSelect();
+  renderSummary('eur', 'summary-eur', 'balance-eur');
+  renderSummary('brl', 'summary-brl', 'balance-brl');
 
   const list = document.getElementById('list');
   if (expenses.length === 0) {
     list.innerHTML = '<div class="empty">nenhuma despesa ainda</div>';
-  } else {
-    list.innerHTML = expenses.slice().reverse().map(e => {
-      const idx = e.paid_by === n1 ? 1 : 0;
-      return `<div class="expense-item">
-        <div class="avatar av-${idx}">${initials(e.paid_by)}</div>
-        <div class="exp-info">
-          <div class="exp-desc">${e.description}</div>
-          <div class="exp-meta">pago por ${e.paid_by}</div>
-        </div>
-        <div class="exp-amount">${fmt(e.amount)}</div>
-        <button class="del" onclick="deleteExpense('${e.id}')" title="remover">×</button>
-      </div>`;
-    }).join('');
+    return;
   }
+
+  list.innerHTML = expenses.slice().reverse().map(e => {
+    const cur = e.currency || 'EUR';
+    const idx = e.paid_by === n1 ? 1 : 0;
+    const isEur = cur === 'EUR';
+    const badgeCls = isEur ? 'badge-eur' : 'badge-brl';
+    const badgeLabel = isEur ? '€ EUR' : 'R$ BRL';
+    return `<div class="expense-item">
+      <div class="avatar av-${idx}">${initials(e.paid_by)}</div>
+      <div class="exp-info">
+        <div class="exp-desc">${e.description}</div>
+        <div class="exp-meta">pago por ${e.paid_by}</div>
+      </div>
+      <div class="exp-right">
+        <div class="exp-amount">${fmt(e.amount, cur)}</div>
+        <span class="exp-cur-badge currency-badge ${badgeCls}">${badgeLabel}</span>
+      </div>
+      <button class="del" onclick="deleteExpense('${e.id}')" title="remover">×</button>
+    </div>`;
+  }).join('');
 }
 
 const saved0 = localStorage.getItem('name0');
