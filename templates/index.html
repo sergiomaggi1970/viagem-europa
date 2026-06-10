@@ -104,6 +104,7 @@
 
   <div class="card">
     <div class="card-title">adicionar despesa</div>
+    <input type="hidden" id="selected-currency" value="eur">
     <div class="currency-tabs">
       <div class="tab active-eur" id="tab-eur" onclick="setTab('eur')">€ Euros</div>
       <div class="tab" id="tab-brl" onclick="setTab('brl')">R$ Reais</div>
@@ -160,6 +161,7 @@ function fmt(v, currency) {
 
 function setTab(tab) {
   currentTab = tab;
+  document.getElementById('selected-currency').value = tab;
   document.getElementById('tab-eur').className = 'tab' + (tab === 'eur' ? ' active-eur' : '');
   document.getElementById('tab-brl').className = 'tab' + (tab === 'brl' ? ' active-brl' : '');
   document.getElementById('inp-val-label').textContent = tab === 'eur' ? 'valor (€)' : 'valor (R$)';
@@ -196,7 +198,7 @@ async function addExpense() {
       description: desc,
       amount: val,
       paid_by: who === '0' ? n0 : n1,
-      currency: currentTab.toUpperCase()
+      currency: document.getElementById('selected-currency').value.toUpperCase()
     })
   });
   document.getElementById('inp-desc').value = '';
