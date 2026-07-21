@@ -1,31 +1,26 @@
 from flask import Flask, jsonify, request, render_template_string
 import os
-import psycopg2
-from psycopg2.extras import RealDictCursor
+import psycopg
 
 app = Flask(__name__)
 
 DATABASE_URL = os.environ.get("DATABASE_URL", "")
 
 def get_db():
-    return psycopg2.connect(DATABASE_URL, cursor_factory=RealDictCursor)
+    return psycopg.connect(DATABASE_URL)
 
 def init_db():
-    conn = get_db()
-    cur = conn.cursor()
-    cur.execute("""
-        CREATE TABLE IF NOT EXISTS expenses (
-            id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-            description TEXT NOT NULL,
-            amount NUMERIC NOT NULL,
-            paid_by TEXT NOT NULL,
-            currency TEXT NOT NULL DEFAULT 'EUR',
-            created_at TIMESTAMPTZ DEFAULT NOW()
-        )
-    """)
-    conn.commit()
-    cur.close()
-    conn.close()
+    with get_db() as conn:
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS expenses (
+                id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+                description TEXT NOT NULL,
+                amount NUMERIC NOT NULL,
+                paid_by TEXT NOT NULL,
+                currency TEXT NOT NULL DEFAULT 'EUR',
+                created_at TIMESTAMPTZ DEFAULT NOW()
+            )
+        """)
 
 HTML = open(os.path.join(os.path.dirname(__file__), "templates", "index.html")).read()
 
@@ -35,37 +30,32 @@ def index():
 
 @app.route("/expenses", methods=["GET"])
 def get_expenses():
-    conn = get_db()
-    cur = conn.cursor()
-    cur.execute("SELECT * FROM expenses ORDER BY created_at ASC")
-    rows = cur.fetchall()
-    cur.close()
-    conn.close()
-    return jsonify([dict(r) for r in rows])
+    with get_db() as conn:
+        rows = conn.execute("SELECT * FROM expenses ORDER BY created_at ASC").fetchall()
+        cols = [d.name for d in conn.execute("SELECT * FROM expenses LIMIT 0").description or []]
+    # re-fetch with column names
+    with get_db() as conn:
+        cur = conn.execute("SELECT id::text, description, amount::float, paid_by, currency, created_at::text FROM expenses ORDER BY created_at ASC")
+        cols = [d.name for d in cur.description]
+        rows = [dict(zip(cols, row)) for row in cur.fetchall()]
+    return jsonify(rows)
 
 @app.route("/expenses", methods=["POST"])
 def add_expense():
     data = request.json
-    conn = get_db()
-    cur = conn.cursor()
-    cur.execute(
-        "INSERT INTO expenses (description, amount, paid_by, currency) VALUES (%s, %s, %s, %s) RETURNING *",
-        (data["description"], data["amount"], data["paid_by"], data.get("currency", "EUR"))
-    )
-    row = dict(cur.fetchone())
-    conn.commit()
-    cur.close()
-    conn.close()
+    with get_db() as conn:
+        cur = conn.execute(
+            "INSERT INTO expenses (description, amount, paid_by, currency) VALUES (%s, %s, %s, %s) RETURNING id::text, description, amount::float, paid_by, currency, created_at::text",
+            (data["description"], data["amount"], data["paid_by"], data.get("currency", "EUR"))
+        )
+        cols = [d.name for d in cur.description]
+        row = dict(zip(cols, cur.fetchone()))
     return jsonify(row), 201
 
 @app.route("/expenses/<id>", methods=["DELETE"])
 def delete_expense(id):
-    conn = get_db()
-    cur = conn.cursor()
-    cur.execute("DELETE FROM expenses WHERE id = %s", (id,))
-    conn.commit()
-    cur.close()
-    conn.close()
+    with get_db() as conn:
+        conn.execute("DELETE FROM expenses WHERE id = %s", (id,))
     return "", 204
 
 init_db()
