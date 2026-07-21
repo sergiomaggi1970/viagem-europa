@@ -1,18 +1,31 @@
 from flask import Flask, jsonify, request, render_template_string
 import os
-import httpx
+import psycopg2
+from psycopg2.extras import RealDictCursor
 
 app = Flask(__name__)
 
-SUPABASE_URL = os.environ.get("SUPABASE_URL", "https://espasbxfpnghcujhrqld.supabase.co")
-SUPABASE_KEY = os.environ.get("SUPABASE_KEY", "")
+DATABASE_URL = os.environ.get("DATABASE_URL", "")
 
-HEADERS = {
-    "apikey": SUPABASE_KEY,
-    "Authorization": f"Bearer {SUPABASE_KEY}",
-    "Content-Type": "application/json",
-    "Prefer": "return=representation"
-}
+def get_db():
+    return psycopg2.connect(DATABASE_URL, cursor_factory=RealDictCursor)
+
+def init_db():
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS expenses (
+            id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+            description TEXT NOT NULL,
+            amount NUMERIC NOT NULL,
+            paid_by TEXT NOT NULL,
+            currency TEXT NOT NULL DEFAULT 'EUR',
+            created_at TIMESTAMPTZ DEFAULT NOW()
+        )
+    """)
+    conn.commit()
+    cur.close()
+    conn.close()
 
 HTML = open(os.path.join(os.path.dirname(__file__), "templates", "index.html")).read()
 
@@ -22,24 +35,40 @@ def index():
 
 @app.route("/expenses", methods=["GET"])
 def get_expenses():
-    r = httpx.get(f"{SUPABASE_URL}/rest/v1/expenses?order=created_at.asc", headers=HEADERS)
-    return jsonify(r.json())
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute("SELECT * FROM expenses ORDER BY created_at ASC")
+    rows = cur.fetchall()
+    cur.close()
+    conn.close()
+    return jsonify([dict(r) for r in rows])
 
 @app.route("/expenses", methods=["POST"])
 def add_expense():
     data = request.json
-    r = httpx.post(f"{SUPABASE_URL}/rest/v1/expenses", headers=HEADERS, json={
-        "description": data["description"],
-        "amount": data["amount"],
-        "paid_by": data["paid_by"],
-        "currency": data.get("currency", "EUR")
-    })
-    return jsonify(r.json()), 201
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute(
+        "INSERT INTO expenses (description, amount, paid_by, currency) VALUES (%s, %s, %s, %s) RETURNING *",
+        (data["description"], data["amount"], data["paid_by"], data.get("currency", "EUR"))
+    )
+    row = dict(cur.fetchone())
+    conn.commit()
+    cur.close()
+    conn.close()
+    return jsonify(row), 201
 
 @app.route("/expenses/<id>", methods=["DELETE"])
 def delete_expense(id):
-    r = httpx.delete(f"{SUPABASE_URL}/rest/v1/expenses?id=eq.{id}", headers=HEADERS)
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute("DELETE FROM expenses WHERE id = %s", (id,))
+    conn.commit()
+    cur.close()
+    conn.close()
     return "", 204
+
+init_db()
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
